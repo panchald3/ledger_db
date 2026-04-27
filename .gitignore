@@ -1,6 +1,5 @@
 # Environment & secrets
 .env
-ca.pem
 
 # Python
 __pycache__/

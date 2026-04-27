@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Welcome back, {{ session.get('full_name', 'User') }}</p>
+    </div>
+</div>
+
+<!-- Account Cards -->
+<section class="section" id="accounts-section">
+    <h2 class="section-title">Your Accounts</h2>
+    <div class="account-grid">
+        {% for acct in accounts %}
+        <div class="account-card" id="account-{{ acct.account_type | lower }}">
+            <div class="account-card-header">
+                <div class="account-type-badge">
+                    {% if acct.account_type == 'CHECKING' %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="account-icon">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                        <line x1="1" y1="10" x2="23" y2="10"/>
+                    </svg>
+                    {% elif acct.account_type == 'SAVINGS' %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="account-icon">
+                        <line x1="12" y1="1" x2="12" y2="23"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                    </svg>
+                    {% else %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="account-icon">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="16"/>
+                        <line x1="8" y1="12" x2="16" y2="12"/>
+                    </svg>
+                    {% endif %}
+                    {{ acct.account_type }}
+                </div>
+                <span class="currency-tag">{{ acct.currency }}</span>
+            </div>
+            <div class="account-balance">
+                <span class="balance-label">Current Balance</span>
+                <span class="balance-amount {% if acct.balance < 0 %}negative{% endif %}">
+                    {{ acct.balance | currency }}
+                </span>
+            </div>
+            <div class="account-id-hint">{{ acct.account_id[:8] }}…</div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Transfer Form -->
+<section class="section" id="transfer-section">
+    <h2 class="section-title">Send Money</h2>
+    <div class="transfer-card">
+        <form method="POST" action="{{ url_for('transfer') }}" class="transfer-form" id="transfer-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="from_account_id" class="form-label">From Account</label>
+                    <select name="from_account_id" id="from_account_id" class="form-select" required>
+                        <option value="" disabled selected>Select your account</option>
+                        {% for acct in accounts %}
+                        <option value="{{ acct.account_id }}">
+                            {{ acct.account_type }} ({{ acct.balance | currency }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="to_account_id" class="form-label">To Account</label>
+                    <select name="to_account_id" id="to_account_id" class="form-select" required>
+                        <option value="" disabled selected>Select recipient</option>
+                        {% for acct in other_accounts %}
+                        <option value="{{ acct.account_id }}">
+                            {{ acct.full_name }} — {{ acct.account_type }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="amount" class="form-label">Amount (USD)</label>
+                    <div class="input-with-icon">
+                        <span class="input-icon">$</span>
+                        <input type="number" name="amount" id="amount"
+                               class="form-input" placeholder="0.00"
+                               min="0.01" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-group form-group-btn">
+                    <button type="submit" class="btn btn-primary btn-lg" id="send-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                        Send Transfer
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Recent Transactions -->
+{% if recent_txns %}
+<section class="section" id="recent-section">
+    <h2 class="section-title">Recent Activity</h2>
+    <div class="table-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Account</th>
+                    <th>Type</th>
+                    <th>Counterparty</th>
+                    <th class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for txn in recent_txns %}
+                <tr>
+                    <td class="text-muted">{{ txn.created_at.strftime('%b %d, %H:%M') if txn.created_at else '' }}</td>
+                    <td>{{ txn.my_account_type }}</td>
+                    <td>
+                        <span class="badge badge-{{ 'credit' if txn.entry_type == 'CREDIT' else 'debit' }}">
+                            {{ txn.entry_type }}
+                        </span>
+                    </td>
+                    <td>{{ txn.other_user or '—' }} ({{ txn.other_account_type or '—' }})</td>
+                    <td class="text-right {{ 'credit-amount' if txn.entry_type == 'CREDIT' else 'debit-amount' }}">
+                        {% if txn.entry_type == 'CREDIT' %}+{% else %}-{% endif %}{{ txn.amount | currency }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

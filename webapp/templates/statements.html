@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Statements{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Monthly Statements</h1>
+        <p class="page-subtitle">View and generate account statements</p>
+    </div>
+    <form method="POST" action="{{ url_for('generate_statement') }}">
+        <button type="submit" class="btn btn-primary" id="generate-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                <polyline points="23 4 23 10 17 10"/>
+                <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+            </svg>
+            Generate This Month
+        </button>
+    </form>
+</div>
+
+{% if statements %}
+<section class="section">
+    <div class="table-card">
+        <table class="data-table" id="statements-table">
+            <thead>
+                <tr>
+                    <th>Period</th>
+                    <th>Account</th>
+                    <th class="text-right">Opening</th>
+                    <th class="text-right">Credits</th>
+                    <th class="text-right">Debits</th>
+                    <th class="text-right">Closing</th>
+                    <th class="text-center">Txns</th>
+                    <th>Generated</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stmt in statements %}
+                <tr>
+                    <td>
+                        <span class="period-badge">
+                            {{ stmt.period_start.strftime('%b %Y') if stmt.period_start else '' }}
+                        </span>
+                    </td>
+                    <td>{{ stmt.account_type }}</td>
+                    <td class="text-right text-muted">{{ stmt.opening_balance | currency }}</td>
+                    <td class="text-right credit-amount">+{{ stmt.total_credits | currency }}</td>
+                    <td class="text-right debit-amount">-{{ stmt.total_debits | currency }}</td>
+                    <td class="text-right fw-600">{{ stmt.closing_balance | currency }}</td>
+                    <td class="text-center">{{ stmt.transaction_count }}</td>
+                    <td class="text-muted">
+                        {{ stmt.generated_at.strftime('%b %d, %H:%M') if stmt.generated_at else '' }}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('statement_detail', statement_id=stmt.statement_id) }}"
+                           class="btn btn-ghost btn-sm">
+                            View →
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% else %}
+<section class="section">
+    <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        <h3>No statements yet</h3>
+        <p>Click "Generate This Month" to create your first monthly statement.</p>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

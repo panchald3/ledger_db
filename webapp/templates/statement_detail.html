@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Statement Detail{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <a href="{{ url_for('statements') }}" class="back-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="back-icon">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Back to Statements
+        </a>
+        <h1 class="page-title">
+            {{ stmt.account_type }} Statement — {{ stmt.period_start.strftime('%B %Y') if stmt.period_start else '' }}
+        </h1>
+        <p class="page-subtitle">
+            {{ stmt.period_start.strftime('%b %d, %Y') if stmt.period_start else '' }} –
+            {{ stmt.period_end.strftime('%b %d, %Y') if stmt.period_end else '' }}
+        </p>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<section class="section">
+    <div class="summary-grid">
+        <div class="summary-card">
+            <span class="summary-label">Opening Balance</span>
+            <span class="summary-value">{{ stmt.opening_balance | currency }}</span>
+        </div>
+        <div class="summary-card summary-credit">
+            <span class="summary-label">Total Credits</span>
+            <span class="summary-value credit-amount">+{{ stmt.total_credits | currency }}</span>
+        </div>
+        <div class="summary-card summary-debit">
+            <span class="summary-label">Total Debits</span>
+            <span class="summary-value debit-amount">-{{ stmt.total_debits | currency }}</span>
+        </div>
+        <div class="summary-card summary-closing">
+            <span class="summary-label">Closing Balance</span>
+            <span class="summary-value">{{ stmt.closing_balance | currency }}</span>
+        </div>
+    </div>
+</section>
+
+<!-- Transaction Detail -->
+<section class="section">
+    <h2 class="section-title">Transaction History ({{ line_items | length }} entries)</h2>
+    {% if line_items %}
+    <div class="table-card">
+        <table class="data-table" id="line-items-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Date & Time</th>
+                    <th>Type</th>
+                    <th class="text-right">Amount</th>
+                    <th class="text-right">Running Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in line_items %}
+                <tr>
+                    <td class="text-muted">{{ loop.index }}</td>
+                    <td>{{ item.created_at[:16] | replace('T', ' ') }}</td>
+                    <td>
+                        <span class="badge badge-{{ 'credit' if item.entry_type == 'CREDIT' else 'debit' }}">
+                            {{ item.entry_type }}
+                        </span>
+                    </td>
+                    <td class="text-right {{ 'credit-amount' if item.entry_type == 'CREDIT' else 'debit-amount' }}">
+                        {% if item.entry_type == 'CREDIT' %}+{% else %}-{% endif %}${{ "%.2f" | format(item.amount | float) }}
+                    </td>
+                    <td class="text-right fw-600">${{ "%.2f" | format(item.running_balance | float) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p>No transactions in this period.</p>
+    </div>
+    {% endif %}
+</section>
+
+<section class="section">
+    <p class="generated-at text-muted">
+        Statement generated at {{ stmt.generated_at.strftime('%B %d, %Y %H:%M UTC') if stmt.generated_at else 'N/A' }}
+    </p>
+</section>
+{% endblock %}

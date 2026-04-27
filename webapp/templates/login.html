@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+    <div class="login-card">
+        <!-- Decorative glow -->
+        <div class="login-glow"></div>
+
+        <div class="login-header">
+            <svg class="login-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+            </svg>
+            <h1>Ledger<span class="accent-dot">DB</span></h1>
+            <p class="login-subtitle">Double-Entry Financial Ledger</p>
+        </div>
+
+        <div class="login-divider">
+            <span>Select your account</span>
+        </div>
+
+        <div class="user-cards">
+            {% for user in users %}
+            <form method="POST" action="{{ url_for('do_login') }}">
+                <input type="hidden" name="user_id" value="{{ user.user_id }}">
+                <button type="submit" class="user-card" id="login-{{ user.username }}">
+                    <div class="user-avatar">
+                        {{ user.full_name[0] }}
+                    </div>
+                    <div class="user-info">
+                        <span class="user-fullname">{{ user.full_name }}</span>
+                        <span class="user-username">@{{ user.username }}</span>
+                    </div>
+                    <svg class="user-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                </button>
+            </form>
+            {% endfor %}
+        </div>
+
+        <p class="login-footer-text">
+            Banking-grade double-entry accounting
+        </p>
+    </div>
+</div>
+{% endblock %}

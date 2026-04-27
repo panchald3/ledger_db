@@ -32,10 +32,10 @@ app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 # ============================================================
 # Database helpers
 # ============================================================
-# Resolve SSL cert path relative to project root (parent of webapp/)
-_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# Resolve SSL cert path to be inside the webapp folder for Vercel
+_CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 _ssl_ca_env = os.environ.get("DB_SSL_CA", "ca.pem")
-_SSL_CA_PATH = _ssl_ca_env if os.path.isabs(_ssl_ca_env) else os.path.join(_PROJECT_ROOT, _ssl_ca_env)
+_SSL_CA_PATH = _ssl_ca_env if os.path.isabs(_ssl_ca_env) else os.path.join(_CURRENT_DIR, _ssl_ca_env)
 
 DB_CONFIG: dict = {
     "host":            os.environ["DB_HOST"],

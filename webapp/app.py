@@ -29,6 +29,11 @@ load_dotenv(_dotenv_path)
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    import traceback
+    return f"<h3>Application Error</h3><pre>{traceback.format_exc()}</pre>", 500
+
 # ============================================================
 # Database helpers
 # ============================================================
